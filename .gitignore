@@ -1,3 +1,8 @@
 node_modules/
 npm-debug.log
 config.json
+client/cert.pem
+client/favicon.ico
+client/key.pem
+favicon.ico
+ica.key

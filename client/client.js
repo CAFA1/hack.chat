@@ -57,28 +57,34 @@ window.setInterval(function() {
 }, 50000)
 
 
-function join(channel) {
+function join(channel) { //long: browser has websocket.
 	if (document.domain == 'hack.chat') {
 		// For https://hack.chat/
 		ws = new WebSocket('wss://hack.chat/chat-ws')
 	}
 	else {
 		// for local installs
-		ws = new WebSocket('ws://' + document.domain + ':6060')
+		//console.log("long: "+ document.domain + ':6060');
+		//ws = new WebSocket('wss://' + document.domain + ':6060')
+		ws = new WebSocket('wss://'+document.domain+':6060');
 	}
 
 	var wasConnected = false
 
 	ws.onopen = function() {
+		//console.log("long: onopen: ")
 		if (!wasConnected) {
 			if (location.hash) {
 				myNick = location.hash.substr(1)
+				//console.log("long: nickhash: "+myNick)
 			}
 			else {
+				//console.log("long: input nickname")
 				myNick = prompt('Nickname:', myNick)
 			}
 		}
 		if (myNick) {
+			//console.log("long: nickname: "+myNick)
 			localStorageSet('my-nick', myNick)
 			send({cmd: 'join', channel: channel, nick: myNick})
 		}
@@ -298,7 +304,7 @@ $('#footer').onclick = function() {
 	$('#chatinput').focus()
 }
 
-$('#chatinput').onkeydown = function(e) {
+$('#chatinput').onkeydown = function(e) { //long: key down
 	if (e.keyCode == 13 /* ENTER */ && !e.shiftKey) {
 		e.preventDefault()
 		// Submit message
@@ -534,5 +540,6 @@ if (myChannel == '') {
 	$('#sidebar').classList.add('hidden')
 }
 else {
+	console.log("join")
 	join(myChannel)
 }

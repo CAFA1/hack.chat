@@ -4,7 +4,15 @@
 var fs = require('fs')
 var ws = require('ws')
 var crypto = require('crypto')
+var https=require('https');
 
+var keypath=process.cwd()+'/client/key.pem';
+var certpath=process.cwd()+'/client/cert.pem';
+var options = {
+  key: fs.readFileSync(keypath),
+  cert: fs.readFileSync(certpath),
+  passphrase:'hackchat'
+};
 
 var config = {}
 function loadConfig(filename) {
@@ -25,12 +33,24 @@ fs.watchFile(configFilename, {persistent: false}, function() {
 })
 
 
-var server = new ws.Server({ host: config.host, port: config.port })
+
+var server1=https.createServer(options, function (req, res) {
+    res.writeHead(403);//403
+    res.end("fuck!\n");
+}).listen(6060);
+
+var server = new ws.Server( { server: server1 } );
+
+
+
+//var server = new ws.Server({ host: config.host, port: config.port })
 console.log("Started server on " + config.host + ":" + config.port)
 
 server.on('connection', function(socket) {
+	//console.log("long: connection");
 	// Socket receiver has crashed, flush and kill socket
 	socket._receiver.onerror = function(e){
+		//console.log("long: error");
 		socket._receiver.flush();
 		socket._receiver.messageBuffer = [];
 		socket._receiver.cleanup();
@@ -38,6 +58,7 @@ server.on('connection', function(socket) {
 	}
 
 	socket.on('message', function(data) {
+		//console.log("long: message"+data);
 		try {
 			// Don't penalize yet, but check whether IP is rate-limited
 			if (POLICE.frisk(getAddress(socket), 0)) {
@@ -55,7 +76,7 @@ server.on('connection', function(socket) {
 			var cmd = args.cmd
 			var command = COMMANDS[cmd]
 			if (command && args) {
-				command.call(socket, args)
+				command.call(socket, args) //long: server call cmd from client.
 			}
 		}
 		catch (e) {
@@ -218,7 +239,7 @@ var COMMANDS = {
 		send({cmd: 'onlineSet', nicks: nicks}, this)
 	},
 
-	chat: function(args) {
+	chat: function(args) {//long: chat
 		var text = String(args.text)
 
 		if (!this.channel) {
